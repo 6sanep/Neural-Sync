@@ -14,10 +14,13 @@ typechain
 
 # Env & local configs
 .env
-.env.*
+.env.local
+.env.development
+.env.test
 .DS_Store
 .turbo
 .idea
 .vscode
+# Note: .env.production is tracked for Vercel deployment
 
 
