@@ -16,6 +16,21 @@ const nextConfig: NextConfig = {
       config.externals.push('@zama-fhe/relayer-sdk/web');
     }
     
+    // Ignore optional wagmi connector dependencies we don't use
+    // These are peer deps of @wagmi/connectors that we don't need
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@base-org/account': false,
+      '@coinbase/wallet-sdk': false,
+      '@gemini-wallet/core': false,
+      '@metamask/sdk': false,
+      'porto': false,
+      'porto/internal': false,
+      '@safe-global/safe-apps-sdk': false,
+      '@safe-global/safe-apps-provider': false,
+      '@walletconnect/ethereum-provider': false,
+    };
+    
     return config;
   },
 };
