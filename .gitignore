@@ -1,0 +1,23 @@
+# Sensitive notebooks
+Neural_note.md
+
+# Dependencies & build artifacts
+node_modules
+.pnpm-store
+package-lock.json
+yarn.lock
+.next
+dist
+out
+coverage
+typechain
+
+# Env & local configs
+.env
+.env.*
+.DS_Store
+.turbo
+.idea
+.vscode
+
+

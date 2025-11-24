@@ -1,0 +1,18 @@
+{
+  "name": "neural-sync",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.20.0",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "lint:web": "pnpm --filter web lint",
+    "test:web": "pnpm --filter web test",
+    "dev:contracts": "pnpm --filter contracts hardhat node",
+    "test:contracts": "pnpm --filter contracts test",
+    "deploy:contracts": "pnpm --filter contracts hardhat run --network sepolia ./deploy/deploy.ts",
+    "dev": "pnpm dev:web",
+    "build": "pnpm build:web"
+  }
+}
+
