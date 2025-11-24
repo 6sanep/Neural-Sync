@@ -1,7 +1,6 @@
-import type { Hex } from "viem";
+import type { Hex, WalletClient } from "viem";
 import { bytesToHex, getAddress } from "viem";
 import type { FhevmInstance } from "@zama-fhe/relayer-sdk/web";
-import type { WalletClient } from "wagmi";
 import { neuralFheConfig } from "@/config/fhe";
 
 let fheInstancePromise: Promise<FhevmInstance> | null = null;
