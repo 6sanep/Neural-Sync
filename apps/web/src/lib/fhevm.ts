@@ -106,7 +106,7 @@ export async function checkFhevmReady() {
     
     console.log("✅ Step 2 Complete: Public key loaded");
     console.log("   Key type:", typeof key);
-    console.log("   Key length:", key?.length || "N/A");
+    console.log("   Key publicKeyId:", key.publicKeyId || "N/A");
     
     console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("✅ FHEVM CHECK PASSED - All systems ready!");
