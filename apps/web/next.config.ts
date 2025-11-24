@@ -14,11 +14,14 @@ const nextConfig: NextConfig = {
     // Server-side: externalize FHE SDK to prevent SSR issues
     if (isServer) {
       config.externals.push('@zama-fhe/relayer-sdk/web');
-    } else {
-      // Client-side: inject global polyfill for browser compatibility
-      // Some dependencies (like @zama-fhe/relayer-sdk) expect Node.js 'global'
+    }
+    
+    // Client-side: inject global polyfill for browser compatibility
+    // Some dependencies (like @zama-fhe/relayer-sdk) expect Node.js 'global'
+    if (!isServer) {
+      config.plugins = config.plugins || [];
       config.plugins.push(
-        new (require('webpack')).ProvidePlugin({
+        new (require('webpack')).DefinePlugin({
           global: 'globalThis',
         })
       );
