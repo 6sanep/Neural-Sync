@@ -317,7 +317,10 @@ async function prepareUserDecryptArguments(
 
   const signature = await walletClient.signTypedData({
     account,
-    domain: typedData.domain,
+    domain: {
+      ...typedData.domain,
+      verifyingContract: typedData.domain.verifyingContract as `0x${string}`,
+    },
     primaryType: typedData.primaryType as "UserDecryptRequestVerification",
     types: {
       UserDecryptRequestVerification: typedDataTypes.UserDecryptRequestVerification,
