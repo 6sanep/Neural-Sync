@@ -109,7 +109,7 @@ export default function Home() {
         try {
           await switchChainAsync({ chainId: sepoliaId });
           toast.success("Wallet synced & switched to Sepolia");
-        } catch (switchError) {
+        } catch {
           toast.warning("Connected, but failed to switch to Sepolia. Please switch manually.");
         }
       } else {

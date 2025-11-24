@@ -1,10 +1,18 @@
 "use client";
 
+interface EthereumProvider {
+  isMetaMask?: boolean;
+  isOkxWallet?: boolean;
+  isBraveWallet?: boolean;
+  isCoinbaseWallet?: boolean;
+  providers?: EthereumProvider[];
+}
+
 declare global {
   interface Window {
     okxwallet?: unknown;
-    ethereum?: any;
-    __originalEthereum?: any;
+    ethereum?: EthereumProvider;
+    __originalEthereum?: EthereumProvider;
   }
 }
 
@@ -16,17 +24,17 @@ export function getMetaMaskProvider() {
   const ethereum = window.ethereum;
   if (!ethereum) return undefined;
 
-  const providers = (ethereum as any).providers;
+  const providers = ethereum.providers;
   if (providers?.length) {
     const provider = providers.find(
-      (p: any) => p?.isMetaMask && !p?.isOkxWallet && !p?.isBraveWallet,
+      (p) => p?.isMetaMask && !p?.isOkxWallet && !p?.isBraveWallet,
     );
     if (provider) {
       return provider;
     }
   }
 
-  if (ethereum.isMetaMask && !(ethereum as any).isOkxWallet && !(ethereum as any).isBraveWallet) {
+  if (ethereum.isMetaMask && !ethereum.isOkxWallet && !ethereum.isBraveWallet) {
     return ethereum;
   }
 
@@ -40,7 +48,7 @@ export function getOkxProvider() {
     return window.okxwallet;
   }
 
-  if (window.ethereum && (window.ethereum as any).isOkxWallet) {
+  if (window.ethereum?.isOkxWallet) {
     return window.ethereum;
   }
 
@@ -52,11 +60,11 @@ export function isCoinbaseInstalled() {
 
   // Check for Coinbase Wallet extension
   if (window.ethereum) {
-    const ethereum = window.ethereum as any;
+    const ethereum = window.ethereum;
     
     // Check providers array first
     if (ethereum.providers?.length) {
-      return ethereum.providers.some((p: any) => p?.isCoinbaseWallet);
+      return ethereum.providers.some((p) => p?.isCoinbaseWallet);
     }
     
     // Check single provider

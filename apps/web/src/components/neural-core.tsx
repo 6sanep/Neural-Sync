@@ -49,21 +49,22 @@ const PARTICLE_VARIANTS = Array.from({ length: 12 }, (_, index) => {
 });
 
 const BIG_BANG_PARTICLES = Array.from({ length: 24 }, (_, i) => {
+  const seed = i + 1;
   const angle = (i / 24) * 360; // Even distribution
-  const radius = 100 + Math.random() * 100; // Random distance
+  const radius = 100 + fract(seed * 0.7823) * 100; // Deterministic "random" distance
   return {
     angle,
     distance: radius,
-    size: 2 + Math.random() * 6, // Varied shard sizes
-    delay: Math.random() * 0.2,
-    duration: 0.8 + Math.random() * 0.5,
-    rotation: Math.random() * 720 - 360, // Wild rotation
+    size: 2 + fract(seed * 0.5321) * 6, // Varied shard sizes
+    delay: fract(seed * 0.9127) * 0.2,
+    duration: 0.8 + fract(seed * 0.6453) * 0.5,
+    rotation: fract(seed * 0.3991) * 720 - 360, // Wild rotation
+    heightMultiplier: 1 + fract(seed * 0.8271), // Pre-computed height multiplier
   };
 });
 
 export function NeuralCore({ phase, systemChoice }: { phase: Phase; systemChoice: Pill | null }) {
   const isBlue = systemChoice === "BLUE";
-  const isRed = systemChoice === "RED";
   
   // Dynamic color classes based on system choice
   const tentacleColor = 
@@ -164,7 +165,7 @@ export function NeuralCore({ phase, systemChoice }: { phase: Phase; systemChoice
               )}
               style={{
                 width: p.size,
-                height: p.size * (1 + Math.random()), // Elongated shards
+                height: p.size * p.heightMultiplier, // Elongated shards (pre-computed)
                 clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)", // Diamond/Shard shape
               }}
               initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
