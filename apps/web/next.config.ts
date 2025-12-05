@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   
   // Required headers for WASM multi-threading in @zama-fhe/relayer-sdk
+  // Using 'credentialless' for COEP to allow cross-origin requests to Zama relayer
   async headers() {
     return [
       {
@@ -15,7 +16,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
+            value: "credentialless",
           },
         ],
       },
