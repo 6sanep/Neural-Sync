@@ -37,8 +37,12 @@ export default function Home() {
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
+  const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  
+  // Prevent hydration mismatch by waiting for client-side mount
+  useEffect(() => setMounted(true), []);
   const {
     hasStarted,
     phase,
@@ -150,13 +154,18 @@ export default function Home() {
     }
   }, [phase]);
 
+  // Use mounted state to prevent hydration mismatch
+  const connected = mounted && isConnected;
+  const walletAddress = mounted ? address : undefined;
+  const currentChainId = mounted ? chainId : undefined;
+  
   const statusItems: StatusItem[] = [
     {
       label: "FHEVM",
-      status: isConnected 
+      status: connected 
         ? (fheStatus === "success" ? "STABLE" : fheStatus === "error" ? "ERROR" : "SCANNING") 
         : "IDLE",
-      tone: isConnected 
+      tone: connected 
         ? (fheStatus === "success" ? "ready" : fheStatus === "error" ? "error" : "warning")
         : "warning",
       value: "",
@@ -166,10 +175,10 @@ export default function Home() {
     },
     {
       label: "RELAYER",
-      status: isConnected 
+      status: connected 
         ? (relayerStatus === "success" ? "STABLE" : relayerStatus === "error" ? "ERROR" : "SCANNING") 
         : "IDLE",
-      tone: isConnected 
+      tone: connected 
         ? (relayerStatus === "success" ? "ready" : relayerStatus === "error" ? "error" : "warning")
         : "warning",
       value: "",
@@ -179,21 +188,21 @@ export default function Home() {
     },
     {
       label: "NETWORK",
-      status: isConnected 
-        ? (chainId === sepoliaId ? "SEPOLIA" : "WRONG NETWORK") 
+      status: connected 
+        ? (currentChainId === sepoliaId ? "SEPOLIA" : "WRONG NETWORK") 
         : "NOT DETECTED",
-      tone: isConnected 
-        ? (chainId === sepoliaId ? "ready" : "warning") 
+      tone: connected 
+        ? (currentChainId === sepoliaId ? "ready" : "warning") 
         : "warning",
       value: "",
       hint: "Auto-switch enforced on connect",
     },
     {
       label: "WALLET",
-      status: isConnected && address ? truncateAddress(address) : "NOT CONNECTED",
-      tone: isConnected ? "ready" : "warning",
+      status: connected && walletAddress ? truncateAddress(walletAddress) : "NOT CONNECTED",
+      tone: connected ? "ready" : "warning",
       value: "",
-      copyValue: address ?? undefined,
+      copyValue: walletAddress ?? undefined,
       hint: "Tap copy icon",
     },
     {
