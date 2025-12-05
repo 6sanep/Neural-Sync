@@ -40,41 +40,18 @@ async function buildInstance() {
   assertBrowser();
 
   if (!fheInstancePromise) {
-    console.log("🔧 Creating FHEVM instance with config:");
-    console.log("   - Chain ID:", neuralFheConfig.chainId);
-    console.log("   - Gateway Chain ID:", neuralFheConfig.gatewayChainId);
-    console.log("   - RPC URL:", neuralFheConfig.rpcUrl);
-    console.log("   - Relayer URL:", neuralFheConfig.relayerUrl);
-    console.log("   - KMS Contract:", neuralFheConfig.kmsContract);
-    console.log("   - ACL Contract:", neuralFheConfig.aclContract);
-    
     fheInstancePromise = (async () => {
-      // Dynamic import to avoid SSR issues
       const { createInstance, initSDK } = await import("@zama-fhe/relayer-sdk/web");
       
-      console.log("📦 SDK imported, initializing WASM...");
-      
-      // Initialize WASM/SDK explicitly before creating instance
       try {
         await initSDK();
-        console.log("✅ WASM/SDK initialized successfully");
-      } catch (wasmError) {
-        console.warn("⚠️ SDK init warning (may already be initialized):", wasmError);
+      } catch {
+        // SDK may already be initialized
       }
       
-      console.log("📦 Creating FHEVM instance...");
-      
-      const instance = await createInstance(neuralFheConfig.instanceConfig);
-      
-      console.log("✅ FHEVM instance created successfully");
-      console.log("   Instance methods:", Object.keys(instance));
-      return instance;
+      return await createInstance(neuralFheConfig.instanceConfig);
     })().catch((error) => {
-      console.error("❌ FHEVM instance creation failed");
-      console.error("   Error type:", error?.constructor?.name);
-      console.error("   Error message:", error?.message);
-      console.error("   Full error:", error);
-      fheInstancePromise = null; // Reset for retry
+      fheInstancePromise = null;
       throw error;
     });
   }
@@ -83,63 +60,14 @@ async function buildInstance() {
 }
 
 export async function checkFhevmReady() {
-  try {
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("🔍 FHEVM DIAGNOSTIC CHECK STARTED");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
-    console.log("\n📋 Step 1: Building FHEVM instance...");
-    const instance = await buildInstance();
-    console.log("✅ Step 1 Complete: Instance built");
-    
-    console.log("\n🔑 Step 2: Fetching FHE public key...");
-    const key = instance.getPublicKey();
-    
-    if (!key) {
-      console.error("❌ Step 2 Failed: Public key is null/undefined");
-      console.error("   This means:");
-      console.error("   - SDK instance was created");
-      console.error("   - But public key was NOT downloaded from relayer");
-      console.error("   - Possible cause: Network timeout or relayer issue");
-      throw new Error("Public key unavailable");
-    }
-    
-    console.log("✅ Step 2 Complete: Public key loaded");
-    console.log("   Key type:", typeof key);
-    console.log("   Key publicKeyId:", key.publicKeyId || "N/A");
-    
-    console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("✅ FHEVM CHECK PASSED - All systems ready!");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    
-    return true;
-  } catch (error) {
-    console.error("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.error("❌ FHEVM CHECK FAILED");
-    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
-    if (error instanceof Error) {
-      console.error("Error name:", error.name);
-      console.error("Error message:", error.message);
-      
-      if (error.message.includes("RPC")) {
-        console.error("\n💡 Possible fix: Check your Sepolia RPC URL");
-        console.error("   Current RPC:", neuralFheConfig.rpcUrl);
-      } else if (error.message.includes("network") || error.message.includes("timeout")) {
-        console.error("\n💡 Possible fix: Network timeout - try again");
-      } else if (error.message.includes("key")) {
-        console.error("\n💡 Possible fix: Relayer service issue - public key not available");
-      }
-      
-      console.error("\nFull error stack:");
-      console.error(error.stack);
-    } else {
-      console.error("Unknown error:", error);
-    }
-    
-    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    throw error;
+  const instance = await buildInstance();
+  const key = instance.getPublicKey();
+  
+  if (!key) {
+    throw new Error("Public key unavailable");
   }
+  
+  return true;
 }
 
 export async function checkRelayerReady() {
@@ -150,27 +78,19 @@ export async function checkRelayerReady() {
   }
   
   try {
-    // Use no-cors mode to avoid CORS errors during health check
     await fetch(url, { method: "GET", cache: "no-store", mode: "no-cors" });
-    console.log("✅ Relayer reachable");
     return true;
-  } catch (error) {
-    console.warn("⚠️ Relayer health check failed (may be CORS):", error);
-    // Don't throw - relayer check is informational only
+  } catch {
     return true;
   }
 }
 
 export async function encryptChoice(choice: 0 | 1, contractAddress: `0x${string}`, caller: `0x${string}`) {
-  console.log("🔐 Encrypting choice:", { choice, contractAddress, caller });
-  
   const instance = await buildInstance();
   const input = instance.createEncryptedInput(contractAddress, caller);
   input.add32(choice);
   const encrypted = await input.encrypt();
 
-  console.log("✅ Encryption complete");
-  
   return {
     handle: bytesToHex(encrypted.handles[0]),
     inputProof: bytesToHex(encrypted.inputProof),
@@ -183,36 +103,29 @@ async function decryptHandlesInternal(
   account: `0x${string}`,
   walletClient: WalletClient,
 ) {
-  console.log("🔓 Decrypting handles:", { ciphertexts, contractAddress, account });
-
   const instance = await buildInstance();
   const handles = ciphertexts.map((handle) => ({ handle, contractAddress }));
   const decryptArgs = await prepareUserDecryptArguments(instance, handles, walletClient, account);
 
-  console.log("✅ Signature obtained, decrypting with retry...");
-
   const results = await withRelayerRetry(async () => {
-    console.log("🔍 Performing user decryption for", handles.length, "handles...");
     return await instance.userDecrypt(
       handles,
       decryptArgs.keypair.privateKey,
       decryptArgs.keypair.publicKey,
       decryptArgs.signature,
       decryptArgs.contractAddresses,
-    account,
+      account,
       decryptArgs.startTimestamp,
       decryptArgs.durationDays,
-  );
+    );
   });
 
   return ciphertexts.map((handle) => {
     const normalized = normalizeHandle(handle);
     const decryptedValue = results[normalized];
     if (decryptedValue === undefined) {
-      console.error("❌ Decryption result missing for handle:", normalized);
       throw new Error("Decryption result missing");
     }
-    console.log("✅ Decryption successful:", normalized, decryptedValue);
     return parseDecryptedValue(decryptedValue);
   });
 }
@@ -249,9 +162,6 @@ async function withRelayerRetry<T>(operation: () => Promise<T>) {
 
   while (attempt < MAX_RELAYER_RETRIES) {
     try {
-      if (attempt > 0) {
-        console.warn(`♻️  Retrying relayer request (attempt ${attempt + 1}/${MAX_RELAYER_RETRIES})`);
-      }
       return await operation();
     } catch (error) {
       lastError = error;
@@ -303,8 +213,6 @@ async function prepareUserDecryptArguments(
   const startTimestamp = Math.floor(Date.now() / 1000);
   const durationDays = DEFAULT_DECRYPT_DURATION_DAYS;
   const contractAddresses = buildDeterministicContractAddressesList(handles.map((pair) => pair.contractAddress));
-
-  console.log("📝 Requesting EIP-712 signature (once only)...");
 
   const typedData = instance.createEIP712(
     keypair.publicKey,

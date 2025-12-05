@@ -59,17 +59,7 @@ export default function Home() {
 
   const { status: fheStatus } = useQuery({
     queryKey: ["fhevm-ready", isConnected, chainId],
-    queryFn: async () => {
-      console.log("🔍 FHEVM Check Starting:", {
-        isConnected,
-        chainId,
-        sepoliaId,
-        isCorrectChain: chainId === sepoliaId,
-      });
-      const result = await checkFhevmReady();
-      console.log("✅ FHEVM Check Success");
-      return result;
-    },
+    queryFn: () => checkFhevmReady(),
     enabled: isConnected && chainId === sepoliaId,
     retry: 1,
   });
@@ -231,18 +221,6 @@ export default function Home() {
     }
   }, [isConnected, reset]);
 
-  // Debug: Monitor wallet and network state
-  useEffect(() => {
-    console.log("🔗 Wallet State:", {
-      isConnected,
-      chainId,
-      address,
-      sepoliaId,
-      isCorrectChain: chainId === sepoliaId,
-      fheStatus,
-      diagnosticsReady,
-    });
-  }, [isConnected, chainId, address, fheStatus, diagnosticsReady, sepoliaId]);
 
   const handleStart = () => {
     if (!canStart) {
@@ -321,23 +299,18 @@ export default function Home() {
       await publicClient.waitForTransactionReceipt({ hash });
 
       const round = await (async () => {
-        const INITIAL_DELAY_MS = 15000; // Increased to 15 seconds
-        const POLL_DELAY_MS = 3000; // Increased poll interval
-        const MAX_ATTEMPTS = 3; // Reduced attempts since we wait longer initially
+        const INITIAL_DELAY_MS = 15000;
+        const POLL_DELAY_MS = 3000;
+        const MAX_ATTEMPTS = 3;
 
-        console.log("⏳ Waiting for relayer to index new round...");
         await delay(INITIAL_DELAY_MS);
 
         for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
           const candidate = await fetchLastRound();
           const roundId = candidate?.[2] ?? 0n;
           if (roundId !== 0n && roundId > previousRoundId) {
-            console.log("✅ Round data synced with relayer (roundId:", roundId.toString(), ")");
             return candidate;
           }
-          console.log(
-            `🔁 Round data not ready yet (attempt ${attempt + 1}/${MAX_ATTEMPTS}). Waiting ${POLL_DELAY_MS}ms...`,
-          );
           await delay(POLL_DELAY_MS);
         }
 
@@ -367,12 +340,9 @@ export default function Home() {
                               message.toLowerCase().includes("transaction was rejected");
       
       if (!isUserRejection) {
-        // Only show an error when it is not a user cancellation
         toast.error(message || "Neural sync failed");
-      setPhase("error");
+        setPhase("error");
       } else {
-        // When the user cancels, silently reset back to the ready state
-        console.log("ℹ️ User cancelled transaction, resetting to ready state");
         setPhase("ready");
         setPlayerChoice(null);
         setSystemChoice(null);
@@ -448,8 +418,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* TX Hash Removed from here */}
-            {txHash ? null : null}
           </div>
 
           <div className="w-full max-w-sm lg:w-80 lg:mt-6">

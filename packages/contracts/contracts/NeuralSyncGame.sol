@@ -30,7 +30,7 @@ contract NeuralSyncGame is ZamaEthereumConfig {
     ) external returns (euint32 systemChoice, euint32 isSyncedFlag) {
         euint32 playerChoice = FHE.fromExternal(encryptedChoice, inputProof);
 
-        systemChoice = _randomSystemChoice(msg.sender);
+        systemChoice = _randomSystemChoice();
         ebool isSynced = FHE.eq(playerChoice, systemChoice);
         isSyncedFlag = FHE.select(isSynced, FHE.asEuint32(1), FHE.asEuint32(0));
 
@@ -55,11 +55,9 @@ contract NeuralSyncGame is ZamaEthereumConfig {
         return (round.systemChoice, round.isSyncedFlag, round.roundId);
     }
 
-    function _randomSystemChoice(address player) private returns (euint32) {
-        uint32 randomBit = uint32(
-            uint256(keccak256(abi.encode(block.prevrandao, block.timestamp, player, _roundCursor))) % 2
-        );
-        return FHE.asEuint32(randomBit);
+    function _randomSystemChoice() private returns (euint32) {
+        euint32 random = FHE.randEuint32();
+        return FHE.rem(random, 2);
     }
 }
 

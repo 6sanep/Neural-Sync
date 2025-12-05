@@ -82,13 +82,3 @@ export const neuralFheConfig = {
   instanceConfig: resolvedInstanceConfig,
 };
 
-if (typeof window !== "undefined") {
-  console.log("📋 FHEVM Config loaded (zero-config baseline):", {
-    chainId: resolvedChainId,
-    gatewayChainId: resolvedGatewayChainId,
-    rpcUrl: resolvedNetwork,
-    relayerUrl: resolvedRelayer,
-    hasCustomRPC: !!process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL,
-    hasCustomRelayer: !!process.env.NEXT_PUBLIC_FHE_RELAYER_URL,
-  });
-}
